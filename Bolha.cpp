@@ -3,16 +3,17 @@
 // #include <conio.h>
 #include <mpi.h>
 #include <time.h>
+#include <math.h>
 
 #define root_process 0
 #define send_data_tag 2001
 #define return_data_tag 2002
 #define max_value 100
-#define num_componentes 100
+// #define num_componentes 1000
  
 int main(int argc, char **argv)
 {
-    // int num_componentes = atoi(argv[]);
+    int num_componentes = atoi(argv[1]);
 
     float v[num_componentes], v2[num_componentes], v3[num_componentes], numero_criado; //definindo o ponteiro v
     int i, j, aux;//, num_componentes;    
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
       }
       
       inicio= clock();
-      avg_rows_per_process = num_componentes / num_procs;
+      avg_rows_per_process = ceil(num_componentes / num_procs);
 
       printf("\n Quantidade de componentes por processo: %d", avg_rows_per_process);
 
