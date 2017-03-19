@@ -8,11 +8,14 @@
 #define send_data_tag 2001
 #define return_data_tag 2002
 #define max_value 100
+#define num_componentes 100
  
 int main(int argc, char **argv)
 {
-    float v[100], v2[100], v3[100]; //definindo o ponteiro v
-    int i, j, aux, num_componentes;    
+    // int num_componentes = atoi(argv[]);
+
+    float v[num_componentes], v2[num_componentes], v3[num_componentes], numero_criado; //definindo o ponteiro v
+    int i, j, aux;//, num_componentes;    
     
 
     MPI_Status status;
@@ -32,22 +35,34 @@ int main(int argc, char **argv)
     printf("Inicializando processo %d \n", my_id);
     if(my_id == 0)
     {
-      printf("Informe o numero de componentes do vetor\n");
-      scanf("%i", &num_componentes);
+      // printf("Informe o numero de componentes do vetor\n");
+      // scanf("%i", &num_componentes);
       
 
-      //Verificando numero de componente      
-      if(num_componentes > max_value){
-        printf("\nValor muito grande! \n");
-        ierr = MPI_Finalize();
-        exit(1);
-      }
+      // //Verificando numero de componente      
+      // if(num_componentes > max_value){
+      //   printf("\nValor muito grande! \n");
+      //   ierr = MPI_Finalize();
+      //   exit(1);
+      // }
       
+
+
+
       //Armazenando os dados em um vetor
+      // for (i = 0; i < num_componentes; i++)
+      // {
+      //   printf("\nDigite o valor para a posicao %d do vetor: ", i+1);
+      //   scanf("%f",&v[i]);
+      // }
+
+      numero_criado = num_componentes;
+      
       for (i = 0; i < num_componentes; i++)
       {
-        printf("\nDigite o valor para a posicao %d do vetor: ", i+1);
-        scanf("%f",&v[i]);
+        v[i] = numero_criado;
+        numero_criado--;
+        printf("%f\n", v[i]);
       }
       
       inicio= clock();
@@ -57,9 +72,9 @@ int main(int argc, char **argv)
 
       /* Distribuindo uma parte do vetor para cada processo */
 
-      printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, 0);
-      printf("\nProcesso %d - termina da linha %d \n", my_id + 1, avg_rows_per_process);
-      printf("\n Valores ordenados [ ");
+      //printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, 0);
+      //printf("\nProcesso %d - termina da linha %d \n", my_id + 1, avg_rows_per_process);
+      printf("\nProcesso %d -  Valores ordenados [ ", my_id + 1);
       
       for(int k = 0; k < avg_rows_per_process; k++){
           printf("%.2f, ", v[k]);
@@ -68,15 +83,15 @@ int main(int argc, char **argv)
    
       for(an_id = 1; an_id < num_procs; an_id++) {
         
-        start_row = an_id*avg_rows_per_process + 1;
+        start_row = an_id*avg_rows_per_process;
         end_row   = (an_id + 1)*avg_rows_per_process;
 
         
         if((num_componentes - end_row) < avg_rows_per_process)
-           end_row = num_componentes - 1;
+           end_row = num_componentes;
 
         
-        num_rows_to_send = end_row - start_row + 1;
+        num_rows_to_send = end_row - start_row;
 
                                    
         ierr = MPI_Send( &num_rows_to_send, 1 , MPI_INT,
@@ -86,7 +101,7 @@ int main(int argc, char **argv)
               an_id, send_data_tag, MPI_COMM_WORLD);
       }
 
-      for( i = 0; i < avg_rows_per_process + 1; i++ )
+      for( i = 0; i < avg_rows_per_process; i++ )
       {
         v3[i] = v[i];
       }
@@ -106,13 +121,13 @@ int main(int argc, char **argv)
       } 
 
       for(an_id = 1; an_id < num_procs; an_id++) {
-        start_row = an_id*avg_rows_per_process + 1;
+        start_row = an_id*avg_rows_per_process;
         end_row   = (an_id + 1)*avg_rows_per_process;
 
         if((num_componentes - end_row) < avg_rows_per_process)
-           end_row = num_componentes - 1;
+           end_row = num_componentes;
 
-        num_rows_to_send = end_row - start_row + 1;
+        num_rows_to_send = end_row - start_row;
 
         ierr = MPI_Recv( &v3[start_row], num_rows_to_send, MPI_FLOAT, MPI_ANY_SOURCE,
               return_data_tag, MPI_COMM_WORLD, &status);
@@ -164,10 +179,10 @@ int main(int argc, char **argv)
 
          num_rows_received = num_rows_to_receive;
 
-        printf("\n ID %d de %d processos \n", my_id + 1, num_procs);
-        printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, my_id * num_rows_received);
-        printf("\nProcesso %d - termina da linha %d \n", my_id + 1, (my_id * num_rows_received) + num_rows_received);
-        printf("\n Valores ordenados [ ");
+        //printf("\n ID %d de %d processos \n", my_id + 1, num_procs);
+        //printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, my_id * num_rows_received);
+        //printf("\nProcesso %d - termina da linha %d \n", my_id + 1, (my_id * num_rows_received) + num_rows_received);
+        printf("\nProcesso %d - Valores ordenados [ ", my_id + 1);
         
         for(j = 0; j < num_rows_received; j++){
           printf("%.2f, ", v2[j]);
