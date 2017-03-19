@@ -2,12 +2,10 @@
 #include <stdlib.h> 
 // #include <conio.h>
 #include <mpi.h>
-#include <time.h>
 
 #define root_process 0
 #define send_data_tag 2001
 #define return_data_tag 2002
-#define max_value 100
  
 int main(int argc, char **argv)
 {
@@ -20,28 +18,20 @@ int main(int argc, char **argv)
     an_id, num_rows_to_receive, avg_rows_per_process, 
     sender, num_rows_received, start_row, end_row, num_rows_to_send; //Variáveis para a Bib.MPI
 
-    clock_t inicio, fim;
-    int cont =0;
-    
-
     ierr = MPI_Init(&argc, &argv); //Inicio do MPI
     
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_id);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-    printf("Inicializando processo %d \n", my_id);
     if(my_id == 0)
     {
       printf("Informe o numero de componentes do vetor\n");
       scanf("%i", &num_componentes);
       
-
-      //Verificando numero de componente      
-      if(num_componentes > max_value){
-        printf("\nValor muito grande! \n");
-        ierr = MPI_Finalize();
-        exit(1);
-      }
+        
+      // v = (float *) malloc(num_componentes * sizeof(float));  
+      // v2 = (float *) malloc(num_componentes * sizeof(float));  
+      // v3 = (float *) malloc(num_componentes * sizeof(float));  
       
       //Armazenando os dados em um vetor
       for (i = 0; i < num_componentes; i++)
@@ -50,41 +40,35 @@ int main(int argc, char **argv)
         scanf("%f",&v[i]);
       }
       
-      inicio= clock();
       avg_rows_per_process = num_componentes / num_procs;
 
       printf("\n Quantidade de componentes por processo: %d", avg_rows_per_process);
 
       /* Distribuindo uma parte do vetor para cada processo */
-
-      printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, 0);
-      printf("\nProcesso %d - termina da linha %d \n", my_id + 1, avg_rows_per_process);
-      printf("\n Valores ordenados [ ");
-      
-      for(int k = 0; k < avg_rows_per_process; k++){
-          printf("%.2f, ", v[k]);
-      }
-      printf("] \n");
    
-      for(an_id = 1; an_id < num_procs; an_id++) {
-        
-        start_row = an_id*avg_rows_per_process + 1;
-        end_row   = (an_id + 1)*avg_rows_per_process;
+        for(an_id = 1; an_id < num_procs; an_id++) {
+            printf("\n ID %d de %d processos \n", an_id, num_procs);
 
-        
-        if((num_componentes - end_row) < avg_rows_per_process)
-           end_row = num_componentes - 1;
+            start_row = an_id*avg_rows_per_process + 1;
+            end_row   = (an_id + 1)*avg_rows_per_process;
 
-        
-        num_rows_to_send = end_row - start_row + 1;
+            printf("\nProcesso %d - comeca da linha %d \n", an_id, start_row);
 
-                                   
-        ierr = MPI_Send( &num_rows_to_send, 1 , MPI_INT,
-              an_id, send_data_tag, MPI_COMM_WORLD);
+            if((num_componentes - end_row) < avg_rows_per_process)
+               end_row = num_componentes - 1;
 
-        ierr = MPI_Send( &v[start_row], num_rows_to_send, MPI_FLOAT,
-              an_id, send_data_tag, MPI_COMM_WORLD);
-      }
+             printf("\nProcesso %d - termina da linha %d \n", an_id, end_row);
+
+            num_rows_to_send = end_row - start_row + 1;
+
+            ierr = MPI_Send( &num_rows_to_send, 1 , MPI_INT,
+                  an_id, send_data_tag, MPI_COMM_WORLD);
+
+            ierr = MPI_Send( &v[start_row], num_rows_to_send, MPI_FLOAT,
+                  an_id, send_data_tag, MPI_COMM_WORLD);
+
+
+         }
 
       for( i = 0; i < avg_rows_per_process + 1; i++ )
       {
@@ -143,17 +127,15 @@ int main(int argc, char **argv)
       {
          printf("%.2f\n",v3[i]);
       }
-
-      fim= clock();
-
-      printf("%f\n", (float)inicio);
-      printf("%f\n", (float)fim);
-
-      printf("Diferenca em ms: %f\n",(float)((fim-inicio)/ 1000000.0F ) * 1000);   
+              
+        
+       //liberando o espaço de memória alocado 
+       // free(v);
     }
     
     else{
 
+        printf("Inicializando processo %d \n", my_id);
        /* Este código é para os processos filhos, portanto devem receber o segmento do vetor gravando em um vetor local */
           
          ierr = MPI_Recv( &num_rows_to_receive, 1, MPI_INT, 
@@ -163,17 +145,6 @@ int main(int argc, char **argv)
                root_process, send_data_tag, MPI_COMM_WORLD, &status);
 
          num_rows_received = num_rows_to_receive;
-
-        printf("\n ID %d de %d processos \n", my_id + 1, num_procs);
-        printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, my_id * num_rows_received);
-        printf("\nProcesso %d - termina da linha %d \n", my_id + 1, (my_id * num_rows_received) + num_rows_received);
-        printf("\n Valores ordenados [ ");
-        
-        for(j = 0; j < num_rows_received; j++){
-          printf("%.2f, ", v2[j]);
-        }
-        printf("] \n");
-
 
          /*Calculando o somatorio da parte do vetor */
 
@@ -197,9 +168,6 @@ int main(int argc, char **argv)
            return_data_tag, MPI_COMM_WORLD);
     } 
     
-     
-  
-    
-  ierr = MPI_Finalize();
-  return 0;
+   ierr = MPI_Finalize();
+   return 0;
 }    
