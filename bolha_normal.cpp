@@ -1,24 +1,32 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h> 
 // #include <conio.h>
  
 int main(void)
 {
-    float *v; //definindo o ponteiro v
+     //definindo o ponteiro v
     int i, j, aux, num_componentes;    
      
     printf("Informe o numero de componentes do vetor\n");
     scanf("%d", &num_componentes);
     
-      
-    v = (float *) malloc(num_componentes * sizeof(float));  
+    float v[num_componentes], numero_criado;  
+    // v = (float *) malloc(num_componentes * sizeof(float));  
     
     //Armazenando os dados em um vetor
-    for (i = 0; i < num_componentes; i++)
-    {
-      printf("\nDigite o valor para a posicao %d do vetor: ", i+1);
-      scanf("%f",&v[i]);
-    }
+    numero_criado = num_componentes;
+      
+      for (i = 0; i < num_componentes; i++)
+      {
+        v[i] = numero_criado;
+        numero_criado--;
+        printf("%f\n", v[i]);
+      }
+
+    clock_t inicio, fim;
+    int cont =0;
+    inicio= clock();
     
     for( i = 0; i < num_componentes; i++ )
     {
@@ -41,11 +49,16 @@ int main(void)
    {
        printf("%.2f\n",v[i]);
    }
-   
+   fim= clock();
+
+  printf("%f\n", (float)inicio);
+  printf("%f\n", (float)fim);
+
+  printf("Diferenca em ms: %f\n",(float)((fim-inicio)/ 1000000.0F ) * 1000);   
           
     
    //liberando o espaço de memória alocado 
-   free(v);
+   
     
    // getch();
    return 0;

@@ -20,9 +20,9 @@ int main(int argc, char **argv)
     
 
     MPI_Status status;
-    int my_id, ierr, num_procs, num_rows,
+    int my_id, ierr, num_procs, num_rows, sobra,
     an_id, num_rows_to_receive, avg_rows_per_process, 
-    sender, num_rows_received, start_row, end_row, num_rows_to_send; //Variáveis para a Bib.MPI
+    sender, num_rows_received, start_row, end_row, num_rows_to_send; //VariÃ¡veis para a Bib.MPI
 
     clock_t inicio, fim;
     int cont =0;
@@ -36,26 +36,8 @@ int main(int argc, char **argv)
     printf("Inicializando processo %d \n", my_id);
     if(my_id == 0)
     {
-      // printf("Informe o numero de componentes do vetor\n");
-      // scanf("%i", &num_componentes);
       
-
-      // //Verificando numero de componente      
-      // if(num_componentes > max_value){
-      //   printf("\nValor muito grande! \n");
-      //   ierr = MPI_Finalize();
-      //   exit(1);
-      // }
-      
-
-
-
-      //Armazenando os dados em um vetor
-      // for (i = 0; i < num_componentes; i++)
-      // {
-      //   printf("\nDigite o valor para a posicao %d do vetor: ", i+1);
-      //   scanf("%f",&v[i]);
-      // }
+      //Gerando vetor ordenado ao contrÃ¡rio
 
       numero_criado = num_componentes;
       
@@ -67,20 +49,23 @@ int main(int argc, char **argv)
       }
       
       inicio= clock();
-      avg_rows_per_process = ceil(num_componentes / num_procs);
 
-      printf("\n Quantidade de componentes por processo: %d", avg_rows_per_process);
+      //Dividindo o numero de componentes pela quantidade de processos
+      avg_rows_per_process = (num_componentes / num_procs);
+      // printf("\n Quantidade de componentes por processo: %d", avg_rows_per_process);
 
-      /* Distribuindo uma parte do vetor para cada processo */
 
+      //Mostrando quais valores vÃ£o ser ordenados pelo primeiro processo
       //printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, 0);
       //printf("\nProcesso %d - termina da linha %d \n", my_id + 1, avg_rows_per_process);
-      printf("\nProcesso %d -  Valores ordenados [ ", my_id + 1);
+      // printf("\nProcesso %d -  Valores ordenados [ ", my_id + 1);
       
-      for(int k = 0; k < avg_rows_per_process; k++){
-          printf("%.2f, ", v[k]);
-      }
-      printf("] \n");
+      // for(int k = 0; k < avg_rows_per_process; k++){
+      //     printf("%.2f, ", v[k]);
+      // }
+      // printf("] \n");
+
+      /* Distribuindo uma parte do vetor para cada processo */
    
       for(an_id = 1; an_id < num_procs; an_id++) {
         
@@ -102,6 +87,8 @@ int main(int argc, char **argv)
               an_id, send_data_tag, MPI_COMM_WORLD);
       }
 
+      //Vetor 3 Ã© a primeira 
+
       for( i = 0; i < avg_rows_per_process; i++ )
       {
         v3[i] = v[i];
@@ -109,9 +96,9 @@ int main(int argc, char **argv)
 
       for( i = 0; i < avg_rows_per_process + 1; i++ )
       {
-        for( j = i + 1; j < avg_rows_per_process; j++ ) // sempre 1 elemento à frente
+        for( j = i + 1; j < avg_rows_per_process; j++ ) // sempre 1 elemento Ã  frente
         {
-          // se o (i > (i+1)) então o i passa pra frente (ordem crescente)
+          // se o (i > (i+1)) entÃ£o o i passa pra frente (ordem crescente)
           if ( v3[i] > v3[j] )
           {
              aux = v3[i];
@@ -140,9 +127,9 @@ int main(int argc, char **argv)
 
       for( i = 0; i < num_componentes; i++ )
       {
-        for( j = i + 1; j < num_componentes; j++ ) // sempre 1 elemento à frente
+        for( j = i + 1; j < num_componentes; j++ ) // sempre 1 elemento Ã  frente
         {
-          // se o (i > (i+1)) então o i passa pra frente (ordem crescente)
+          // se o (i > (i+1)) entÃ£o o i passa pra frente (ordem crescente)
           if ( v3[i] > v3[j] )
           {
              aux = v3[i];
@@ -166,11 +153,12 @@ int main(int argc, char **argv)
       printf("%f\n", (float)fim);
 
       printf("Diferenca em ms: %f\n",(float)((fim-inicio)/ 1000000.0F ) * 1000);   
+      //printf("Diferenca em ms: %f\n",(float) (fim-inicio));   
     }
     
     else{
 
-       /* Este código é para os processos filhos, portanto devem receber o segmento do vetor gravando em um vetor local */
+       /* Este cÃ³digo Ã© para os processos filhos, portanto devem receber o segmento do vetor gravando em um vetor local */
           
          ierr = MPI_Recv( &num_rows_to_receive, 1, MPI_INT, 
                root_process, send_data_tag, MPI_COMM_WORLD, &status);
@@ -183,21 +171,21 @@ int main(int argc, char **argv)
         //printf("\n ID %d de %d processos \n", my_id + 1, num_procs);
         //printf("\nProcesso %d - comeca da linha %d \n", my_id + 1, my_id * num_rows_received);
         //printf("\nProcesso %d - termina da linha %d \n", my_id + 1, (my_id * num_rows_received) + num_rows_received);
-        printf("\nProcesso %d - Valores ordenados [ ", my_id + 1);
+        // printf("\nProcesso %d - Valores ordenados [ ", my_id + 1);
         
-        for(j = 0; j < num_rows_received; j++){
-          printf("%.2f, ", v2[j]);
-        }
-        printf("] \n");
+        // for(j = 0; j < num_rows_received; j++){
+        //   printf("%.2f, ", v2[j]);
+        // }
+        // printf("] \n");
 
 
          /*Calculando o somatorio da parte do vetor */
 
       for( i = 0; i < num_rows_received; i++ )
       {
-        for( j = i + 1; j < num_rows_received; j++ ) // sempre 1 elemento à frente
+        for( j = i + 1; j < num_rows_received; j++ ) // sempre 1 elemento Ã  frente
         {
-          // se o (i > (i+1)) então o i passa pra frente (ordem crescente)
+          // se o (i > (i+1)) entÃ£o o i passa pra frente (ordem crescente)
           if ( v2[i] > v2[j] )
           {
              aux = v2[i];
